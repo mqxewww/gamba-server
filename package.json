@@ -1,11 +1,37 @@
 {
   "name": "gamba-server",
+  "version": "0.0.1",
+  "description": "",
   "module": "main.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun main",
+    "format": "eslint '**/*.ts' && prettier --write '**/*.ts'"
+  },
+  "author": {
+    "name": "Maxence 'mqxewww' NOIZET",
+    "email": "noizetmaxence@pm.me",
+    "url": "https://github.com/mqxewww"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mqxewww/gamba-server.git"
+  },
+  "keywords": [],
+  "dependencies": {
+    "fastify": "^5.2.1"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.21.0",
+    "@typescript-eslint/parser": "^8.21.0",
+    "eslint": "8.56.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-sonarjs": "^3.0.1",
+    "prettier": "^3.4.2"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "5.5.3"
   }
 }
