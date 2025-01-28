@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "start:prod": "node src/main",
     "build": "nest build",
-    "mikro-orm-schema-update": "npx --yes mikro-orm schema:update --run",
+    "mikro-orm-schema-update": "bunx --yes mikro-orm schema:update --run",
     "format": "eslint '**/*.ts' && prettier --write '**/*.ts'"
   },
   "author": {
