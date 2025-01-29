@@ -4,18 +4,15 @@ import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entit
 import { Game } from "~modules/games/entities/game.entity";
 
 @Entity({ abstract: true })
-export abstract class IsolatedUser extends BaseEntity {
+export class IsolatedCrashGame extends BaseEntity {
   @Property()
-  public name!: string;
-
-  @Property()
-  public coins!: number;
+  public seed!: string;
 }
 
-@Entity({ tableName: "users" })
-export class User extends IsolatedUser {
-  @OneToMany(() => CrashGameBet, (crashGameBet) => crashGameBet.user)
-  public crashGameBets = new Collection<CrashGameBet>(this);
+@Entity({ tableName: "crash-games" })
+export class CrashGame extends IsolatedCrashGame {
+  @OneToMany(() => CrashGameBet, (crashGameBet) => crashGameBet.crashGame)
+  public bets = new Collection<CrashGameBet>(this);
 
   @ManyToOne(() => Game)
   public game!: Game;
