@@ -1,7 +1,7 @@
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsNumber, IsUUID } from "class-validator";
 
-class RegisterCrashGameBet {
+export class RegisterCrashGameBet {
   @IsUUID()
   public uuid!: string;
 
@@ -18,7 +18,4 @@ export class RegisterCrashGameDTO {
   @IsArray({ each: true })
   @Type(() => RegisterCrashGameBet)
   public bets!: RegisterCrashGameBet[];
-
-  @IsUUID()
-  public game_uuid!: string;
 }
