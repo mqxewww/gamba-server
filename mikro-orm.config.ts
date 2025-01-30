@@ -15,7 +15,7 @@ export default defineConfig({
   dbName: process.env.DATABASE_NAME,
   entities: ["./src/**/entities/*.entity.js", "./dist/src/**/entities/*.entity.js"],
   entitiesTs: ["./src/**/entities/*.entity.ts"],
-  allowGlobalContext: false,
+  allowGlobalContext: true,
   timezone: "+00:00",
   findOneOrFailHandler: (entityName, where) => {
     logger.error({ entityName, where });

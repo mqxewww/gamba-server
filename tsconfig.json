@@ -15,7 +15,8 @@
     "outDir": "./dist",
     "paths": {
       "~common/*": ["./src/common/*"],
-      "~modules/*": ["./src/modules/*"]
+      "~modules/*": ["./src/modules/*"],
+      "~types/*": ["./src/types/*"]
     },
     "removeComments": true,
     "resolveJsonModule": true,
