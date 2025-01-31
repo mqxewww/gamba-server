@@ -10,11 +10,10 @@ import { Server, Socket } from "socket.io";
 import { WebSocketHelper } from "~common/helpers/ws.helper";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
-import {
-  PendingBet,
-  PendingBetMinifiedDTO
-} from "~modules/crash-games/dto/outbound/pending-bets.dto";
+import { CurrentCrashGameDTO } from "~modules/crash-games/dto/outbound/current-crash-game.dto";
+import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entity";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
+import { CrashGameBetStateEnum } from "~modules/crash-games/enums/crash-game-bet-state.enum";
 import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.enum";
 import { User } from "~modules/users/entities/user.entity";
 
@@ -29,22 +28,16 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   private readonly server!: Server;
 
   public readonly MIN_CLIENT = 3;
-  public readonly pendingBets: PendingBet[] = [];
+  public readonly bets: CrashGameBet[] = [];
   public currentCrashGame: CrashGame | null = null;
 
   public async handleConnection(client: Socket) {
-    console.log(`${client.id} joined, ${this.server.sockets.sockets.size} client(s) online !`);
-
     if (this.shouldCreateNewCrashGame()) {
       this.currentCrashGame = await this.crashGamesService.createPendingCrashGame();
-      this.pendingBets.splice(0, this.pendingBets.length);
-
-      console.log(`At least ${this.MIN_CLIENT} clients are connected, created a new game !`);
-    } else {
-      console.log(
-        `Missing ${this.MIN_CLIENT - this.server.sockets.sockets.size} client(s) to create a game.`
-      );
+      this.bets.splice(0, this.bets.length);
     }
+
+    client.emit("crash-game/data", CurrentCrashGameDTO.build(this.currentCrashGame, this.bets));
   }
 
   public handleDisconnect(client: Socket) {
@@ -61,18 +54,26 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
     const body = await WebSocketHelper.parseAndValidateJSON(message, HandleAddBetDTO);
     const user = await this.em.findOneOrFail(User, { uuid: body.user_uuid });
 
-    if (this.pendingBets.find((bet) => bet.user.uuid === user.uuid) || body.amount > user.coins) {
+    if (this.bets.find((bet) => bet.user.uuid === user.uuid) || body.amount > user.coins) {
       client.emit("crash-game/add-bet-reply", false);
       return false;
     }
 
-    this.pendingBets.push(new PendingBet(user, body.amount, body.auto_cashout));
+    this.bets.push(
+      this.em.create(CrashGameBet, {
+        user,
+        amount: body.amount,
+        auto_cashout: body.auto_cashout,
+        state: CrashGameBetStateEnum.PENDING,
+        crashGame: this.currentCrashGame
+      })
+    );
 
     client.emit("crash-game/add-bet-reply", true);
 
     this.server.emit(
-      "crash-game/ongoing-bets",
-      this.pendingBets.map((pendingBet) => PendingBetMinifiedDTO.build(pendingBet))
+      "crash-game/data",
+      CurrentCrashGameDTO.build(this.currentCrashGame, this.bets)
     );
   }
 
@@ -84,5 +85,9 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
     }
 
     return this.currentCrashGame.state === CrashGameStateEnum.FINISHED;
+  }
+
+  public async registerBetsAndStart(): Promise<void> {
+    await this.em.persistAndFlush(this.bets);
   }
 }
