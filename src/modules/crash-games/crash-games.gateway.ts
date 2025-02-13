@@ -6,7 +6,9 @@ import {
   WebSocketServer
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { WebSocketHelper } from "~common/helpers/ws.helper";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
+import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
 
 @WebSocketGateway()
 export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -16,9 +18,11 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   private readonly server!: Server;
 
   public async handleConnection(client: Socket) {
-    const message = await this.crashGamesService.handleConnection(this.server, client);
+    const response = await this.crashGamesService.handleConnection(client, this.server);
 
-    client.emit("crash-game/data", message);
+    client.emit("crash-game/data", response[0]);
+
+    if (response[1]) client.broadcast.emit("crash-game/data", response[0]);
   }
 
   public handleDisconnect(client: Socket) {
@@ -26,11 +30,14 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   @SubscribeMessage("crash-game/add-bet")
-  public async handleAddBet(client: Socket, data: string) {
-    const message = await this.crashGamesService.handleAddBet(client, data);
+  public async handleAddBet(client: Socket, message: string) {
+    const response = await this.crashGamesService.handleAddBet(
+      client,
+      await WebSocketHelper.parseAndValidateJSON(message, HandleAddBetDTO)
+    );
 
     client.emit("crash-game/add-bet-reply", true);
 
-    this.server.emit("crash-game/data", message);
+    this.server.emit("crash-game/data", response);
   }
 }
