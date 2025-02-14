@@ -5,11 +5,11 @@ import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.
 
 @Entity({ abstract: true })
 export class IsolatedCrashGame extends BaseEntity {
-  @Property()
-  public seed!: string;
-
   @Enum(() => CrashGameStateEnum)
   public state!: CrashGameStateEnum;
+
+  @Property()
+  public seed!: string;
 }
 
 @Entity({ tableName: "crash-games" })

@@ -6,11 +6,14 @@ import { User } from "~modules/users/entities/user.entity";
 
 @Entity({ abstract: true })
 export class IsolatedCrashGameBet extends BaseEntity {
+  @Enum(() => CrashGameBetStateEnum)
+  public state!: CrashGameBetStateEnum;
+
   @Property()
   public amount!: number;
 
-  @Enum(() => CrashGameBetStateEnum)
-  public state!: CrashGameBetStateEnum;
+  @Property({ nullable: true })
+  public cashedOutAt?: number;
 }
 
 @Entity({ tableName: "crash-game-bets" })

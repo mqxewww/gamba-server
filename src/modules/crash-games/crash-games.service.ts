@@ -12,8 +12,6 @@ import { User } from "~modules/users/entities/user.entity";
 
 @Injectable()
 export class CrashGamesService {
-  public readonly MIN_CLIENT = 3;
-
   public constructor(private readonly em: EntityManager) {}
 
   public async handleConnection(
@@ -23,7 +21,7 @@ export class CrashGamesService {
     const currentCrashGame = await this.getCurrentCrashGame();
     let updateOtherUsers = false;
 
-    if (CrashGameHelper.shouldCreateNewCrashGame(server, currentCrashGame, this.MIN_CLIENT)) {
+    if (CrashGameHelper.shouldCreateNewCrashGame(server, currentCrashGame)) {
       await this.createPendingCrashGame(server);
       updateOtherUsers = true;
     }
