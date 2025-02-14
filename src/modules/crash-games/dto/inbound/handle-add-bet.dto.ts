@@ -8,8 +8,4 @@ export class HandleAddBetDTO {
   @IsNumber()
   @Transform(({ value }: { value: string }) => parseInt(value))
   public amount!: number;
-
-  @IsNumber()
-  @Transform(({ value }: { value: string }) => parseInt(value))
-  public auto_cashout!: number;
 }

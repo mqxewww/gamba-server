@@ -61,7 +61,6 @@ export class CrashGamesService {
     const bet = this.em.create(CrashGameBet, {
       user,
       amount: message.amount,
-      auto_cashout: message.auto_cashout,
       state: CrashGameBetStateEnum.NOT_REGISTERED,
       crashGame: currentCrashGame
     });

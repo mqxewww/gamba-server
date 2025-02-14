@@ -9,9 +9,6 @@ export class IsolatedCrashGameBet extends BaseEntity {
   @Property()
   public amount!: number;
 
-  @Property()
-  public auto_cashout!: number;
-
   @Enum(() => CrashGameBetStateEnum)
   public state!: CrashGameBetStateEnum;
 }

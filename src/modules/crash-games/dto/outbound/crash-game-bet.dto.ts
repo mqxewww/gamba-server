@@ -5,11 +5,10 @@ export class CrashGameBetMinifiedDTO {
   public constructor(
     public readonly user_name: string,
     public readonly amount: number,
-    public readonly auto_cashout: number,
     public readonly state: CrashGameBetStateEnum
   ) {}
 
   public static build(bet: CrashGameBet): CrashGameBetMinifiedDTO {
-    return new CrashGameBetMinifiedDTO(bet.user.name, bet.amount, bet.auto_cashout, bet.state);
+    return new CrashGameBetMinifiedDTO(bet.user.name, bet.amount, bet.state);
   }
 }
