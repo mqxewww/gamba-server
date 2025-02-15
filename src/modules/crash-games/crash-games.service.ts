@@ -113,7 +113,30 @@ export class CrashGamesService {
     await this.em.persistAndFlush(currentCrashGame);
 
     server.emit("crash-game/data", CurrentCrashGameDTO.build(currentCrashGame));
+
+    const crashTick = CrashGameHelper.getCrashTickFromSeed(currentCrashGame.seed);
+    const time = CrashGameHelper.getTimeFromCrashTick(crashTick);
+
+    setTimeout(() => this.endCrashGameWhenCrashTickReached(server), time);
   }
 
-  public async onCrashGameReachingCrash() {}
+  public async endCrashGameWhenCrashTickReached(server: Server) {
+    const currentCrashGame = await this.getCurrentCrashGame();
+
+    if (!currentCrashGame) throw new Error("Crash game should be defined");
+
+    for (const bet of currentCrashGame.bets.filter(
+      (bet) => bet.state === CrashGameBetStateEnum.PENDING
+    )) {
+      bet.state = CrashGameBetStateEnum.CRASHED;
+
+      await this.em.persistAndFlush(bet);
+    }
+
+    currentCrashGame.state = CrashGameStateEnum.FINISHED;
+
+    await this.em.persistAndFlush(currentCrashGame);
+
+    server.emit("crash-game/data", CurrentCrashGameDTO.build(currentCrashGame));
+  }
 }
