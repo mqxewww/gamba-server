@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { CrashGameHelper } from "~common/helpers/crash-game.helper";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
+import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 import { CurrentCrashGameDTO } from "~modules/crash-games/dto/outbound/current-crash-game.dto";
 import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entity";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
@@ -66,6 +67,34 @@ export class CrashGamesService {
     await this.em.persistAndFlush(bet);
 
     return CurrentCrashGameDTO.build(currentCrashGame);
+  }
+
+  public async handleCashout(client: Socket, message: HandleCashoutDTO) {
+    const currentCrashGame = await this.getCurrentCrashGame();
+
+    if (!currentCrashGame || currentCrashGame.state !== CrashGameStateEnum.IN_PROGRESS) {
+      client.emit("crash-game/cashout-reply", false);
+
+      throw new Error("crash-game/cashout-reply error");
+    }
+
+    const userBet = currentCrashGame.bets.find((bet) => bet.user.uuid === message.user_uuid);
+
+    if (!userBet || userBet.state !== CrashGameBetStateEnum.PENDING) {
+      client.emit("crash-game/cashout-reply", false);
+
+      throw new Error("crash-game/cashout-reply error");
+    }
+
+    userBet.cashedOutAt = CrashGameHelper.getCrashTickFromTime(
+      new Date().getTime() - (currentCrashGame.created_at.getTime() + 19000)
+    );
+
+    userBet.user.coins += userBet.amount * (userBet.cashedOutAt / 100);
+
+    userBet.state = CrashGameBetStateEnum.CASHED_OUT;
+
+    await this.em.persistAndFlush(userBet);
   }
 
   public async getCurrentCrashGame(): Promise<CrashGame | null> {
@@ -138,5 +167,7 @@ export class CrashGamesService {
     await this.em.persistAndFlush(currentCrashGame);
 
     server.emit("crash-game/data", CurrentCrashGameDTO.build(currentCrashGame));
+
+    setTimeout(() => this.createPendingCrashGame(server), 5000);
   }
 }
