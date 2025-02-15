@@ -1,4 +1,4 @@
-import { Entity, Enum, ManyToOne, Property } from "@mikro-orm/core";
+import { Entity, Enum, ManyToOne, Property, type Rel } from "@mikro-orm/core";
 import { BaseEntity } from "~common/entities/base.entity";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
 import { CrashGameBetStateEnum } from "~modules/crash-games/enums/crash-game-bet-state.enum";
@@ -7,7 +7,7 @@ import { User } from "~modules/users/entities/user.entity";
 @Entity({ abstract: true })
 export class IsolatedCrashGameBet extends BaseEntity {
   @Enum(() => CrashGameBetStateEnum)
-  public state!: CrashGameBetStateEnum;
+  public state!: Rel<CrashGameBetStateEnum>;
 
   @Property()
   public amount!: number;
@@ -19,8 +19,8 @@ export class IsolatedCrashGameBet extends BaseEntity {
 @Entity({ tableName: "crash-game-bets" })
 export class CrashGameBet extends IsolatedCrashGameBet {
   @ManyToOne(() => User)
-  public user!: User;
+  public user!: Rel<User>;
 
   @ManyToOne(() => CrashGame)
-  public crashGame!: CrashGame;
+  public crashGame!: Rel<CrashGame>;
 }

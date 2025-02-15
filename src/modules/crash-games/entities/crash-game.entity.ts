@@ -1,4 +1,4 @@
-import { Collection, Entity, Enum, OneToMany, Property } from "@mikro-orm/core";
+import { Collection, Entity, Enum, OneToMany, Property, type Rel } from "@mikro-orm/core";
 import { BaseEntity } from "~common/entities/base.entity";
 import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entity";
 import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.enum";
@@ -6,7 +6,7 @@ import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.
 @Entity({ abstract: true })
 export class IsolatedCrashGame extends BaseEntity {
   @Enum(() => CrashGameStateEnum)
-  public state!: CrashGameStateEnum;
+  public state!: Rel<CrashGameStateEnum>;
 
   @Property()
   public seed!: string;

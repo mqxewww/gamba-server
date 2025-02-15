@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced NodeJS with Bun.
+- Replaced Express with Fastify.
+- Several dependencies changed/deleted.
+
+### Fixed
+
+- Fix "ReferenceError: Cannot access 'Entity' before initialization" by using Rel mapped type (see https://mikro-orm.io/docs/relationships).
+
 ## [0.1.0] - 2025-02-15
 
 ### Added
