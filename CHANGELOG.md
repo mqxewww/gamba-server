@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix "ReferenceError: Cannot access 'Entity' before initialization" by using Rel mapped type (see https://mikro-orm.io/docs/relationships).
 
+### Removed
+
+- Removed .npmrc file
+
 ## [0.1.0] - 2025-02-15
 
 ### Added

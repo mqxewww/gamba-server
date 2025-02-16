@@ -91,14 +91,13 @@ export class CrashGamesService {
     );
 
     userBet.user.coins += userBet.amount * (userBet.cashedOutAt / 100);
-
     userBet.state = CrashGameBetStateEnum.CASHED_OUT;
 
-    await this.em.persistAndFlush(userBet);
+    await this.em.flush();
   }
 
   public async getCurrentCrashGame(): Promise<CrashGame | null> {
-    const currentCrashGame = await this.em.find(CrashGame, {}, { populate: ["bets"], limit: 1 });
+    const currentCrashGame = await this.em.find(CrashGame, {}, { limit: 1 });
 
     return currentCrashGame[0] ? currentCrashGame[0] : null;
   }
@@ -130,16 +129,14 @@ export class CrashGamesService {
 
     if (!currentCrashGame) throw new Error("Crash Game should be defined !!");
 
+    currentCrashGame.state = CrashGameStateEnum.IN_PROGRESS;
+
     for (const bet of currentCrashGame.bets) {
       bet.state = CrashGameBetStateEnum.PENDING;
       bet.user.coins -= bet.amount;
-
-      await this.em.persistAndFlush(bet);
     }
 
-    currentCrashGame.state = CrashGameStateEnum.IN_PROGRESS;
-
-    await this.em.persistAndFlush(currentCrashGame);
+    await this.em.flush();
 
     server.emit("crash-game/data", CurrentCrashGameDTO.build(currentCrashGame));
 
@@ -154,20 +151,18 @@ export class CrashGamesService {
 
     if (!currentCrashGame) throw new Error("Crash game should be defined");
 
+    currentCrashGame.state = CrashGameStateEnum.FINISHED;
+
     for (const bet of currentCrashGame.bets.filter(
       (bet) => bet.state === CrashGameBetStateEnum.PENDING
     )) {
       bet.state = CrashGameBetStateEnum.CRASHED;
-
-      await this.em.persistAndFlush(bet);
     }
 
-    currentCrashGame.state = CrashGameStateEnum.FINISHED;
-
-    await this.em.persistAndFlush(currentCrashGame);
+    await this.em.flush();
 
     server.emit("crash-game/data", CurrentCrashGameDTO.build(currentCrashGame));
 
-    setTimeout(() => this.createPendingCrashGame(server), 5000);
+    // setTimeout(() => this.createPendingCrashGame(server), 5000);
   }
 }
