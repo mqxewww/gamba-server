@@ -17,22 +17,22 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   public constructor(private readonly crashGamesService: CrashGamesService) {}
 
   @WebSocketServer()
-  namespace!: Namespace;
+  private readonly namespace!: Namespace;
 
-  public async handleConnection(client: Socket) {
-    const response = await this.crashGamesService.handleConnection(this.namespace.server);
+  public async handleConnection(client: Socket): Promise<void> {
+    const response = await this.crashGamesService.handleConnection(client, this.namespace.server);
 
     client.emit(WebsocketEventsEnum.CG_DATA, response[0]);
 
     if (response[1]) client.broadcast.emit(WebsocketEventsEnum.CG_DATA, response[0]);
   }
 
-  public handleDisconnect(client: Socket) {
+  public handleDisconnect(client: Socket): void {
     this.crashGamesService.handleDisconnect(client, this.namespace.server);
   }
 
   @SubscribeMessage(WebsocketEventsEnum.CG_ADD_BET)
-  public async handleAddBet(client: Socket, message: string) {
+  public async handleAddBet(client: Socket, message: string): Promise<void> {
     const response = await this.crashGamesService.handleAddBet(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleAddBetDTO)
@@ -44,7 +44,7 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   @SubscribeMessage(WebsocketEventsEnum.CG_CASHOUT)
-  public async handleCashout(client: Socket, message: string) {
+  public async handleCashout(client: Socket, message: string): Promise<void> {
     const response = await this.crashGamesService.handleCashout(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleCashoutDTO)

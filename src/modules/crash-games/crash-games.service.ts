@@ -1,5 +1,5 @@
 import { EntityManager } from "@mikro-orm/mysql";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import moment from "moment";
 import { Server, Socket } from "socket.io";
 import { WebsocketEventsEnum } from "~common/enums/ws-events.enum";
@@ -15,11 +15,19 @@ import { User } from "~modules/users/entities/user.entity";
 
 @Injectable()
 export class CrashGamesService {
-  public constructor(private readonly em: EntityManager) {}
-
+  private readonly logger = new Logger(CrashGamesService.name, { timestamp: true });
   private currentCrashGame: CrashGame | null = null;
 
-  public async handleConnection(server: Server): Promise<[CurrentCrashGameDTO, boolean]> {
+  public constructor(private readonly em: EntityManager) {}
+
+  public async handleConnection(
+    client: Socket,
+    server: Server
+  ): Promise<[CurrentCrashGameDTO, boolean]> {
+    this.logger.log(
+      `${client.id} joined, ${server.of("/crash-game").sockets.size} client(s) online`
+    );
+
     let updateOtherUsers = false;
 
     if (CrashGameHelper.shouldCreateNewCrashGame(server, this.currentCrashGame)) {
@@ -31,13 +39,15 @@ export class CrashGamesService {
   }
 
   public handleDisconnect(client: Socket, server: Server): void {
-    console.log(`${client.id} left, ${server.sockets.sockets.size} client(s) online.`);
+    this.logger.log(`${client.id} left, ${server.of("/crash-game").sockets.size} client(s) online`);
   }
 
   public async handleAddBet(
     client: Socket,
     message: HandleAddBetDTO
   ): Promise<CurrentCrashGameDTO> {
+    this.logger.log(`${client.id} bet`);
+
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.PENDING) {
       client.emit(WebsocketEventsEnum.CG_ADD_BET_REPLY, false);
 
@@ -68,6 +78,8 @@ export class CrashGamesService {
   }
 
   public async handleCashout(client: Socket, message: HandleCashoutDTO) {
+    this.logger.log(`${client.id} cashout`);
+
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.IN_PROGRESS) {
       client.emit(WebsocketEventsEnum.CG_CASHOUT_REPLY, false);
 
@@ -96,14 +108,16 @@ export class CrashGamesService {
   }
 
   public async createPendingCrashGame(server: Server): Promise<CrashGame> {
+    this.logger.log("Creating pending game");
+
     const crashGame = this.em.create(CrashGame, {
       seed: CrashGameHelper.generateRandomSeed(),
       state: CrashGameStateEnum.PENDING
     });
 
-    await this.em.flush();
-
     this.currentCrashGame = crashGame;
+
+    await this.em.flush();
 
     setTimeout(() => this.registerBetsAndStart(server), 20000 - moment().milliseconds());
 
@@ -111,6 +125,8 @@ export class CrashGamesService {
   }
 
   public async registerBetsAndStart(server: Server): Promise<void> {
+    this.logger.log("Registering bets");
+
     if (!this.currentCrashGame) throw new Error("Crash Game should be defined !!");
 
     this.currentCrashGame.state = CrashGameStateEnum.IN_PROGRESS;
@@ -131,6 +147,8 @@ export class CrashGamesService {
   }
 
   public async endCrashGameWhenCrashTickReached(server: Server) {
+    this.logger.log("Ending game");
+
     if (!this.currentCrashGame) throw new Error("Crash game should be defined");
 
     this.currentCrashGame.state = CrashGameStateEnum.FINISHED;
