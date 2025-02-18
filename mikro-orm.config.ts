@@ -22,5 +22,5 @@ export default defineConfig({
 
     throw new InternalServerErrorException({ entityName, where });
   },
-  persistOnCreate: false
+  persistOnCreate: true
 });

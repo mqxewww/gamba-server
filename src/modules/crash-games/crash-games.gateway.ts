@@ -5,52 +5,53 @@ import {
   WebSocketGateway,
   WebSocketServer
 } from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
+import { Namespace, Socket } from "socket.io";
+import { WebsocketEventsEnum } from "~common/enums/ws-events.enum";
 import { WebSocketHelper } from "~common/helpers/ws.helper";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
 import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 
-@WebSocketGateway()
+@WebSocketGateway({ namespace: "/crash-game" })
 export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public constructor(private readonly crashGamesService: CrashGamesService) {}
 
   @WebSocketServer()
-  private readonly server!: Server;
+  namespace!: Namespace;
 
   public async handleConnection(client: Socket) {
-    const response = await this.crashGamesService.handleConnection(client, this.server);
+    const response = await this.crashGamesService.handleConnection(this.namespace.server);
 
-    client.emit("crash-game/data", response[0]);
+    client.emit(WebsocketEventsEnum.CG_DATA, response[0]);
 
-    if (response[1]) client.broadcast.emit("crash-game/data", response[0]);
+    if (response[1]) client.broadcast.emit(WebsocketEventsEnum.CG_DATA, response[0]);
   }
 
   public handleDisconnect(client: Socket) {
-    this.crashGamesService.handleDisconnect(client, this.server);
+    this.crashGamesService.handleDisconnect(client, this.namespace.server);
   }
 
-  @SubscribeMessage("crash-game/add-bet")
+  @SubscribeMessage(WebsocketEventsEnum.CG_ADD_BET)
   public async handleAddBet(client: Socket, message: string) {
     const response = await this.crashGamesService.handleAddBet(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleAddBetDTO)
     );
 
-    client.emit("crash-game/add-bet-reply", true);
+    client.emit(WebsocketEventsEnum.CG_ADD_BET_REPLY, true);
 
-    this.server.emit("crash-game/data", response);
+    this.namespace.server.emit(WebsocketEventsEnum.CG_DATA, response);
   }
 
-  @SubscribeMessage("crash-game/cashout")
+  @SubscribeMessage(WebsocketEventsEnum.CG_CASHOUT)
   public async handleCashout(client: Socket, message: string) {
     const response = await this.crashGamesService.handleCashout(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleCashoutDTO)
     );
 
-    client.emit("crash-game/handle-cashout-reply", true);
+    client.emit(WebsocketEventsEnum.CG_CASHOUT_REPLY, true);
 
-    this.server.emit("crash-game/data", response);
+    this.namespace.server.emit(WebsocketEventsEnum.CG_DATA, response);
   }
 }

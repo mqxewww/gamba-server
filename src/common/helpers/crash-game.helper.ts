@@ -81,7 +81,7 @@ export class CrashGameHelper {
     minClients = this.MIN_CLIENT
   ): boolean {
     if (!currentCrashGame) {
-      if (server.sockets.sockets.size >= minClients) return true;
+      if (server.of("/crash-game").sockets.size >= minClients) return true;
 
       return false;
     }
