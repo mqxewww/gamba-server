@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Implemented nestjs logger.
+
 ### Changed
 
 - Replaced NodeJS with Bun.
 - Replaced Express with Fastify.
 - Several dependencies changed/deleted.
+- Moved some service methods to gateway, now callable with NestJS EventEmitter.
 
 ### Fixed
 

@@ -1,5 +1,4 @@
 import { createHash, randomBytes } from "crypto";
-import { Server } from "socket.io";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
 import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.enum";
 
@@ -69,19 +68,19 @@ export class CrashGameHelper {
   /**
    * Determines if a new crash game should be created.
    *
-   * @param server
+   * @param connectedSockets - The current number of connected sockets.
    * @param currentCrashGame - The current crash game, typically the result of the `getCurrentCrashGame` method from CrashGamesService.
    * @param minClients - The minimum number of clients required to start a new crash game (default is 3).
    *
    * @returns Returns true if a new Crash game should be created, otherwise returns false.
    */
   public static shouldCreateNewCrashGame(
-    server: Server,
+    connectedSockets: number,
     currentCrashGame: CrashGame | null,
     minClients = this.MIN_CLIENT
   ): boolean {
     if (!currentCrashGame) {
-      if (server.of("/crash-game").sockets.size >= minClients) return true;
+      if (connectedSockets >= minClients) return true;
 
       return false;
     }

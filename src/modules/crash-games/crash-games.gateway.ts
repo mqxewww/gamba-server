@@ -1,3 +1,4 @@
+import { OnEvent } from "@nestjs/event-emitter";
 import {
   type OnGatewayConnection,
   type OnGatewayDisconnect,
@@ -5,30 +6,31 @@ import {
   WebSocketGateway,
   WebSocketServer
 } from "@nestjs/websockets";
-import { Namespace, Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { WebsocketEventsEnum } from "~common/enums/ws-events.enum";
 import { WebSocketHelper } from "~common/helpers/ws.helper";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
 import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 
-@WebSocketGateway({ namespace: "/crash-game" })
+@WebSocketGateway()
 export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public constructor(private readonly crashGamesService: CrashGamesService) {}
 
   @WebSocketServer()
-  private readonly namespace!: Namespace;
+  private readonly server!: Server;
 
   public async handleConnection(client: Socket): Promise<void> {
-    const response = await this.crashGamesService.handleConnection(client, this.namespace.server);
+    const response = await this.crashGamesService.handleConnection(
+      client,
+      this.server.sockets.sockets.size
+    );
 
-    client.emit(WebsocketEventsEnum.CG_DATA, response[0]);
-
-    if (response[1]) client.broadcast.emit(WebsocketEventsEnum.CG_DATA, response[0]);
+    client.emit(WebsocketEventsEnum.CG_DATA, response);
   }
 
   public handleDisconnect(client: Socket): void {
-    this.crashGamesService.handleDisconnect(client, this.namespace.server);
+    this.crashGamesService.handleDisconnect(client, this.server.sockets.sockets.size);
   }
 
   @SubscribeMessage(WebsocketEventsEnum.CG_ADD_BET)
@@ -40,7 +42,7 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
 
     client.emit(WebsocketEventsEnum.CG_ADD_BET_REPLY, true);
 
-    this.namespace.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
   }
 
   @SubscribeMessage(WebsocketEventsEnum.CG_CASHOUT)
@@ -52,6 +54,27 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
 
     client.emit(WebsocketEventsEnum.CG_CASHOUT_REPLY, true);
 
-    this.namespace.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+  }
+
+  @OnEvent(WebsocketEventsEnum.CG_EM_CREATE)
+  public async handleCreatePendingGame(): Promise<void> {
+    const response = await this.crashGamesService.handleCreatePendingGame();
+
+    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+  }
+
+  @OnEvent(WebsocketEventsEnum.CG_EM_START)
+  public async handleRegisterBetsAndStart(payload: number): Promise<void> {
+    const response = await this.crashGamesService.handleRegisterBetsAndStart(payload);
+
+    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+  }
+
+  @OnEvent(WebsocketEventsEnum.CG_EM_END)
+  public async handleEndCurrentGame(): Promise<void> {
+    const response = await this.crashGamesService.handleEndCurrentGame();
+
+    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
   }
 }

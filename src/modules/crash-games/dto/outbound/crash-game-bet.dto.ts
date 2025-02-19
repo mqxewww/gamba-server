@@ -4,11 +4,17 @@ import { CrashGameBetStateEnum } from "~modules/crash-games/enums/crash-game-bet
 export class CrashGameBetMinifiedDTO {
   public constructor(
     public readonly user_name: string,
+    public readonly state: CrashGameBetStateEnum,
     public readonly amount: number,
-    public readonly state: CrashGameBetStateEnum
+    public readonly cashedOutAt: number | null
   ) {}
 
   public static build(bet: CrashGameBet): CrashGameBetMinifiedDTO {
-    return new CrashGameBetMinifiedDTO(bet.user.name, bet.amount, bet.state);
+    return new CrashGameBetMinifiedDTO(
+      bet.user.name,
+      bet.state,
+      bet.amount,
+      bet.cashedOutAt ?? null
+    );
   }
 }
