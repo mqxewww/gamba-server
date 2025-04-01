@@ -4,8 +4,11 @@ import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entit
 
 @Entity({ abstract: true })
 export abstract class IsolatedUser extends BaseEntity {
-  @Property()
+  @Property({ unique: true })
   public name!: string;
+
+  @Property({ unique: true })
+  public code!: string;
 
   @Property()
   public coins!: number;

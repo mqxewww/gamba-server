@@ -3,6 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import moment from "moment";
 import { Socket } from "socket.io";
+import { AppService } from "src/app.service";
 import { WebsocketEventsEnum } from "~common/enums/ws-events.enum";
 import { CrashGameHelper } from "~common/helpers/crash-game.helper";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
@@ -21,31 +22,32 @@ export class CrashGamesService {
 
   public constructor(
     private readonly em: EntityManager,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly appService: AppService
   ) {}
 
-  public async handleConnection(
-    client: Socket,
-    connectedSockets: number
-  ): Promise<CurrentCrashGameDTO> {
-    this.logger.log(`${client.id} joined, ${connectedSockets} client(s) online`);
+  public async handleConnection(client: Socket): Promise<CurrentCrashGameDTO> {
+    this.appService.registerClient(client.id, "crash-games");
 
-    if (CrashGameHelper.shouldCreateNewCrashGame(connectedSockets, this.currentCrashGame))
+    if (
+      CrashGameHelper.shouldCreateNewCrashGame(
+        this.appService.getTotalConnections(),
+        this.currentCrashGame
+      )
+    )
       this.eventEmitter.emit(WebsocketEventsEnum.CG_EM_CREATE);
 
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
-  public handleDisconnect(client: Socket, connectedSockets: number): void {
-    this.logger.log(`${client.id} left, ${connectedSockets} client(s) online`);
+  public handleDisconnect(client: Socket): void {
+    this.appService.removeClient(client.id);
   }
 
   public async handleAddBet(
     client: Socket,
     message: HandleAddBetDTO
   ): Promise<CurrentCrashGameDTO> {
-    this.logger.log(`${client.id} bet`);
-
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.PENDING) {
       client.emit(WebsocketEventsEnum.CG_ADD_BET_REPLY, false);
 
@@ -71,6 +73,8 @@ export class CrashGamesService {
     });
 
     await this.em.flush();
+
+    this.logger.log(`${user.name} has bet ${message.amount} coins`);
 
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
@@ -105,6 +109,10 @@ export class CrashGamesService {
 
     await this.em.flush();
 
+    this.logger.log(
+      `${userBet.user.name} cashed out at x${userBet.cashedOutAt / 100}, winning ${userBet.amount * (userBet.cashedOutAt / 100)} coins`
+    );
+
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
@@ -126,6 +134,8 @@ export class CrashGamesService {
       20000 - moment().milliseconds()
     );
 
+    this.logger.log(`A new 'crash game' has been created`);
+
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
@@ -143,6 +153,8 @@ export class CrashGamesService {
 
     setTimeout(() => this.eventEmitter.emit(WebsocketEventsEnum.CG_EM_END), time);
 
+    this.logger.log(`Bets are now registered and the current 'crash game' is now in progress`);
+
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
@@ -158,6 +170,13 @@ export class CrashGamesService {
     }
 
     await this.em.flush();
+
+    const crashTick = CrashGameHelper.getCrashTickFromSeed(this.currentCrashGame.seed);
+    const time = CrashGameHelper.getTimeFromCrashTick(crashTick);
+
+    this.logger.log(
+      `The current 'crash game' is now finished, crashed at x${crashTick / 100}, lasted for ${time}ms`
+    );
 
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }

@@ -15,7 +15,6 @@ import { UsersModule } from "~modules/users/users.module";
     EventEmitterModule.forRoot(),
     CrashGamesModule,
     UsersModule
-  ],
-  providers: []
+  ]
 })
 export class AppModule {}
