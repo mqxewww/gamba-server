@@ -2,6 +2,7 @@ import { EntityManager } from "@mikro-orm/mysql";
 import { Injectable, Logger } from "@nestjs/common";
 import { Socket } from "socket.io";
 import { AppService } from "src/app.service";
+import { WsNamespaceEnum } from "~common/enums/ws-namespace.enum";
 
 @Injectable()
 export class UsersService {
@@ -13,7 +14,7 @@ export class UsersService {
   ) {}
 
   public handleConnection(client: Socket): void {
-    this.appService.registerClient(client.id, "users");
+    this.appService.registerClient(client.id, WsNamespaceEnum.USERS);
   }
 
   public handleDisconnect(client: Socket): void {

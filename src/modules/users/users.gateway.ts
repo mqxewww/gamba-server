@@ -5,9 +5,10 @@ import {
   type OnGatewayDisconnect
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { WsNamespaceEnum } from "~common/enums/ws-namespace.enum";
 import { UsersService } from "~modules/users/users.service";
 
-@WebSocketGateway({ namespace: "users" })
+@WebSocketGateway({ namespace: WsNamespaceEnum.USERS })
 export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public constructor(private readonly usersService: UsersService) {}
 

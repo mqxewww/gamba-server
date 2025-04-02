@@ -1,3 +1,4 @@
+import { UseFilters } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import {
   SubscribeMessage,
@@ -7,13 +8,17 @@ import {
   type OnGatewayDisconnect
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { WebsocketEventsEnum } from "~common/enums/ws-events.enum";
+import { EventEnum } from "~common/enums/event.enum";
+import { WsMessageEnum } from "~common/enums/ws-message.enum";
+import { WsNamespaceEnum } from "~common/enums/ws-namespace.enum";
+import { WsExceptionFilter } from "~common/filters/ws-exception.filter";
 import { WebSocketHelper } from "~common/helpers/ws.helper";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
 import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 
-@WebSocketGateway({ namespace: "crash-games" })
+@UseFilters(WsExceptionFilter)
+@WebSocketGateway({ namespace: WsNamespaceEnum.CRASH_GAMES })
 export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public constructor(private readonly crashGamesService: CrashGamesService) {}
 
@@ -23,55 +28,55 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   public async handleConnection(client: Socket, ..._args: unknown[]): Promise<void> {
     const response = await this.crashGamesService.handleConnection(client);
 
-    client.emit(WebsocketEventsEnum.CG_DATA, response);
+    client.emit(WsMessageEnum.CG_DATA, response);
   }
 
   public handleDisconnect(client: Socket): void {
     this.crashGamesService.handleDisconnect(client);
   }
 
-  @SubscribeMessage(WebsocketEventsEnum.CG_ADD_BET)
+  @SubscribeMessage(WsMessageEnum.CG_ADD_BET)
   public async handleAddBet(client: Socket, message: string): Promise<void> {
     const response = await this.crashGamesService.handleAddBet(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleAddBetDTO)
     );
 
-    client.emit(WebsocketEventsEnum.CG_ADD_BET_REPLY, true);
+    client.emit(WsMessageEnum.CG_ADD_BET_RES, true);
 
-    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.CG_DATA, response);
   }
 
-  @SubscribeMessage(WebsocketEventsEnum.CG_CASHOUT)
+  @SubscribeMessage(WsMessageEnum.CG_CASHOUT)
   public async handleCashout(client: Socket, message: string): Promise<void> {
     const response = await this.crashGamesService.handleCashout(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleCashoutDTO)
     );
 
-    client.emit(WebsocketEventsEnum.CG_CASHOUT_REPLY, true);
+    client.emit(WsMessageEnum.CG_CASHOUT_RES, true);
 
-    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.CG_DATA, response);
   }
 
-  @OnEvent(WebsocketEventsEnum.CG_EM_CREATE)
+  @OnEvent(EventEnum.CG_CREATE)
   public async handleCreatePendingGame(): Promise<void> {
     const response = await this.crashGamesService.handleCreatePendingGame();
 
-    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.CG_DATA, response);
   }
 
-  @OnEvent(WebsocketEventsEnum.CG_EM_START)
+  @OnEvent(EventEnum.CG_START)
   public async handleRegisterBetsAndStart(payload: number): Promise<void> {
     const response = await this.crashGamesService.handleRegisterBetsAndStart(payload);
 
-    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.CG_DATA, response);
   }
 
-  @OnEvent(WebsocketEventsEnum.CG_EM_END)
+  @OnEvent(EventEnum.CG_END)
   public async handleEndCurrentGame(): Promise<void> {
     const response = await this.crashGamesService.handleEndCurrentGame();
 
-    this.server.emit(WebsocketEventsEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.CG_DATA, response);
   }
 }

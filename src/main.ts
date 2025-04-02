@@ -5,7 +5,9 @@ import { AppModule } from "src/app.module";
 import pJson from "../package.json";
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
+    bufferLogs: true
+  });
 
   app.enableCors({
     credentials: true,
