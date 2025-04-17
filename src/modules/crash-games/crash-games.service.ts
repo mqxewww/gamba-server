@@ -32,14 +32,6 @@ export class CrashGamesService {
   public async handleConnection(client: Socket): Promise<CurrentCrashGameDTO> {
     this.appService.registerClient(client.id, WsNamespaceEnum.CRASH_GAMES);
 
-    if (
-      CrashGameHelper.shouldCreateNewCrashGame(
-        this.appService.getTotalConnections(),
-        this.currentCrashGame
-      )
-    )
-      this.eventEmitter.emit(EventEnum.CG_CREATE);
-
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
@@ -175,6 +167,8 @@ export class CrashGamesService {
     this.logger.log(
       `The current 'crash game' is now finished, crashed at x${crashTick / 100}, lasted for ${time}ms`
     );
+
+    setTimeout(() => this.eventEmitter.emit(EventEnum.CG_CREATE), 5000);
 
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }

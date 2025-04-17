@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "src/app.module";
+import { AppService } from "src/app.service";
 import pJson from "../package.json";
 
 async function bootstrap(): Promise<void> {
@@ -26,6 +27,7 @@ async function bootstrap(): Promise<void> {
   SwaggerModule.setup("/", app, swaggerDocument);
 
   await app.listen(+process.env.API_PORT);
+  await app.get(AppService).onStartup();
 }
 
 bootstrap();
