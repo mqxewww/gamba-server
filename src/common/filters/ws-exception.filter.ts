@@ -14,7 +14,7 @@ export class WsExceptionFilter implements ModuleWsExceptionFilter {
     const event = host.switchToWs().getPattern();
 
     client.emit(
-      `${event}-response`,
+      `${event}:response`,
       WebSocketHelper.createWsResponse(false, undefined, exception.getError())
     );
   }

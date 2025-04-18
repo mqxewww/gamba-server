@@ -3,6 +3,7 @@ import { CrashGameBetStateEnum } from "~modules/crash-games/enums/crash-game-bet
 
 export class CrashGameBetMinifiedDTO {
   public constructor(
+    public readonly uuid: string,
     public readonly user_name: string,
     public readonly state: CrashGameBetStateEnum,
     public readonly amount: number,
@@ -11,6 +12,7 @@ export class CrashGameBetMinifiedDTO {
 
   public static build(bet: CrashGameBet): CrashGameBetMinifiedDTO {
     return new CrashGameBetMinifiedDTO(
+      bet.uuid,
       bet.user.name,
       bet.state,
       bet.amount,

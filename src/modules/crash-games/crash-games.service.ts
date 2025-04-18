@@ -86,7 +86,7 @@ export class CrashGamesService {
     await this.em.flush();
 
     userBet.cashedOutAt = CrashGameHelper.getCrashTickFromTime(
-      new Date().getTime() - (this.currentCrashGame.created_at.getTime() + 19000)
+      new Date().getTime() - (this.currentCrashGame.created_at.getTime() + 20000)
     );
 
     userBet.user.coins += userBet.amount * (userBet.cashedOutAt / 100);
@@ -170,6 +170,6 @@ export class CrashGamesService {
 
     setTimeout(() => this.eventEmitter.emit(EventEnum.CG_CREATE), 5000);
 
-    return CurrentCrashGameDTO.build(this.currentCrashGame);
+    return CurrentCrashGameDTO.build(this.currentCrashGame, crashTick);
   }
 }
