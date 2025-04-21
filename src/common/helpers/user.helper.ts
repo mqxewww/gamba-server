@@ -1,11 +1,20 @@
 export class UserHelper {
-  public static async generateUserCode(verifier: (code: string) => Promise<boolean>) {
-    let code = "";
+  public static async formatUserName(
+    email: string,
+    verifier: (name: string) => Promise<boolean>
+  ): Promise<string> {
+    let name: string;
+    let i = 0;
 
     do {
-      code = Math.random().toString().slice(2, 6);
-    } while (!(await verifier(code)));
+      name =
+        i === 0
+          ? email.split("@")[0].toLowerCase().replace(" ", "")
+          : `${email.split("@")[0]}${i}`.toLowerCase().replace(" ", "");
 
-    return code;
+      i++;
+    } while (!(await verifier(name)));
+
+    return name;
   }
 }
