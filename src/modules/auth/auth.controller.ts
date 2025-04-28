@@ -7,7 +7,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("send-link")
-  public async sendLick(@Body() body: SendLinkDTO): Promise<void> {
+  public async sendLink(@Body() body: SendLinkDTO): Promise<void> {
     return await this.authService.sendLink(body);
   }
 }

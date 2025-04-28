@@ -9,6 +9,7 @@ import { WsError } from "~common/constants/ws-errors.constant";
 import { EventEnum } from "~common/enums/event.enum";
 import { WsNamespaceEnum } from "~common/enums/ws-namespace.enum";
 import { CrashGameHelper } from "~common/helpers/crash-game.helper";
+import { AuthService } from "~modules/auth/auth.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
 import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 import { CurrentCrashGameDTO } from "~modules/crash-games/dto/outbound/current-crash-game.dto";
@@ -26,11 +27,20 @@ export class CrashGamesService {
   public constructor(
     private readonly em: EntityManager,
     private readonly eventEmitter: EventEmitter2,
-    private readonly appService: AppService
+    private readonly appService: AppService,
+    private readonly authService: AuthService
   ) {}
 
   public async handleConnection(client: Socket): Promise<CurrentCrashGameDTO> {
     this.appService.registerClient(client.id, WsNamespaceEnum.CRASH_GAMES);
+
+    const { token, email } = client.handshake.query;
+
+    if (token && !Array.isArray(token) && email && !Array.isArray(email)) {
+      const user = await this.authService.validateToken(email, token);
+
+      if (user) client.data.user = user;
+    }
 
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
