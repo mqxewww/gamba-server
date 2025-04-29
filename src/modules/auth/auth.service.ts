@@ -1,6 +1,5 @@
 import { EntityManager } from "@mikro-orm/mysql";
 import { Injectable, Logger } from "@nestjs/common";
-import { WsException } from "@nestjs/websockets";
 import { WsError } from "~common/constants/ws-errors.constant";
 import { UserHelper } from "~common/helpers/user.helper";
 import type { SendLinkDTO } from "~modules/auth/dto/inbound/send-link.dto";
@@ -43,17 +42,27 @@ export class AuthService {
     // add nodemailer logic
   }
 
-  public async validateToken(email: string, _token: string): Promise<UserDTO> {
+  public async validateToken(email: string, _token: string): Promise<UserDTO | null> {
     const token = await this.em.findOne(Token, { token: _token }, { populate: ["user"] });
 
-    if (!token) throw new WsException(WsError.TOKEN_DOESNT_EXISTS);
+    if (!token) {
+      this.logger.log(WsError.TOKEN_DOESNT_EXISTS);
 
-    if (token.user.email !== email) throw new WsException(WsError.INVALID_TOKEN_EMAIL);
+      return null;
+    }
+
+    if (token.user.email !== email) {
+      this.logger.log(WsError.INVALID_TOKEN_EMAIL);
+
+      return null;
+    }
 
     if (token.expires_at < new Date()) {
       this.em.removeAndFlush(token);
 
-      throw new WsException(WsError.TOKEN_HAS_EXPIRED);
+      this.logger.log(WsError.TOKEN_HAS_EXPIRED);
+
+      return null;
     }
 
     return UserDTO.build(token.user);

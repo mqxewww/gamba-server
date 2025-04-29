@@ -5,6 +5,7 @@ import {
   type OnGatewayDisconnect
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { WsMessageEnum } from "~common/enums/ws-message.enum";
 import { WsNamespaceEnum } from "~common/enums/ws-namespace.enum";
 import { UsersService } from "~modules/users/users.service";
 
@@ -15,8 +16,10 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   private readonly server!: Server;
 
-  public handleConnection(client: Socket, ..._args: unknown[]) {
-    this.usersService.handleConnection(client);
+  public async handleConnection(client: Socket, ..._args: unknown[]) {
+    const user = await this.usersService.handleConnection(client);
+
+    if (user) client.emit(WsMessageEnum.U_DATA, user);
   }
 
   public handleDisconnect(client: Socket) {

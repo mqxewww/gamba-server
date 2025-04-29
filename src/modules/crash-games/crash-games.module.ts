@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { AppService } from "src/app.service";
 import { AuthService } from "~modules/auth/auth.service";
 import { CrashGamesGateway } from "~modules/crash-games/crash-games.gateway";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
+import { UsersService } from "~modules/users/users.service";
 
 @Module({
-  providers: [CrashGamesGateway, CrashGamesService, AppService, AuthService]
+  providers: [CrashGamesGateway, CrashGamesService, UsersService, AuthService]
 })
 export class CrashGamesModule {}

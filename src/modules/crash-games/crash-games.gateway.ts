@@ -4,8 +4,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  type OnGatewayConnection,
-  type OnGatewayDisconnect
+  type OnGatewayConnection
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { EventEnum } from "~common/enums/event.enum";
@@ -15,11 +14,10 @@ import { WsExceptionFilter } from "~common/filters/ws-exception.filter";
 import { WebSocketHelper } from "~common/helpers/ws.helper";
 import { CrashGamesService } from "~modules/crash-games/crash-games.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
-import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({ namespace: WsNamespaceEnum.CRASH_GAMES })
-export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class CrashGamesGateway implements OnGatewayConnection {
   public constructor(private readonly crashGamesService: CrashGamesService) {}
 
   @WebSocketServer()
@@ -29,10 +27,6 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
     const response = await this.crashGamesService.handleConnection(client);
 
     client.emit(WsMessageEnum.CG_DATA, response);
-  }
-
-  public handleDisconnect(client: Socket): void {
-    this.crashGamesService.handleDisconnect(client);
   }
 
   @SubscribeMessage(WsMessageEnum.CG_ADD_BET)
@@ -48,11 +42,8 @@ export class CrashGamesGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   @SubscribeMessage(WsMessageEnum.CG_CASHOUT)
-  public async handleCashout(client: Socket, message: string): Promise<void> {
-    const response = await this.crashGamesService.handleCashout(
-      client,
-      await WebSocketHelper.parseAndValidateJSON(message, HandleCashoutDTO)
-    );
+  public async handleCashout(client: Socket): Promise<void> {
+    const response = await this.crashGamesService.handleCashout(client);
 
     client.emit(WsMessageEnum.CG_CASHOUT_RES, true);
 

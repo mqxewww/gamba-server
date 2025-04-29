@@ -12,7 +12,11 @@ export enum WsErrorName {
   ALREADY_BET = "ALREADY_BET",
   NOT_ENOUGH_COINS = "NOT_ENOUGH_COINS",
   NO_PENDING_BET = "NO_PENDING_BET",
-  ALREADY_CASHED_OUT = "ALREADY_CASHED_OUT"
+  ALREADY_CASHED_OUT = "ALREADY_CASHED_OUT",
+
+  NOT_LOGGED_IN = "NOT_LOGGED_IN",
+
+  UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
 }
 
 export const WsError: { [key in WsErrorName]: WsResponseError } = {
@@ -48,5 +52,15 @@ export const WsError: { [key in WsErrorName]: WsResponseError } = {
   [WsErrorName.ALREADY_CASHED_OUT]: {
     name: WsErrorName.ALREADY_CASHED_OUT,
     message: "You have already cashed out your bet."
+  },
+
+  [WsErrorName.NOT_LOGGED_IN]: {
+    name: WsErrorName.NOT_LOGGED_IN,
+    message: "You are not logged in, please log in to bet."
+  },
+
+  [WsErrorName.UNEXPECTED_ERROR]: {
+    name: WsErrorName.UNEXPECTED_ERROR,
+    message: "An unexpected error has occured, please try again later."
   }
 };

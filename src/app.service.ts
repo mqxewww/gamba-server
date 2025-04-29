@@ -9,35 +9,14 @@ import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.
 @Injectable()
 export class AppService {
   private logger = new Logger(AppService.name);
-  private connections = new Map<string, string>();
 
   public constructor(
     private readonly em: EntityManager,
     private readonly eventEmitter: EventEmitter2
   ) {}
 
-  public registerClient(clientId: string, namespace: string): void {
-    this.connections.set(clientId, namespace);
-
-    this.logger.log(`Register client ${clientId} inside ${namespace} namespace`);
-    this.logger.log(`Total connections: ${this.connections.size}`);
-  }
-
-  public removeClient(clientId: string): void {
-    const ns = this.connections.get(clientId);
-
-    this.connections.delete(clientId);
-
-    this.logger.log(`Removed client ${clientId} from ${ns} namespace`);
-    this.logger.log(`Total connections: ${this.connections.size}`);
-  }
-
-  public getTotalConnections(): number {
-    return this.connections.size;
-  }
-
   public async onStartup(): Promise<void> {
-    this.logger.log(`onStartup() process currently running`);
+    this.logger.log(`[${this.onStartup.name}] process currently running`);
 
     const latestCrashGame = await this.em.findOne(
       CrashGame,
@@ -47,18 +26,20 @@ export class AppService {
 
     switch (true) {
       case !latestCrashGame || latestCrashGame.state === CrashGameStateEnum.FINISHED:
-        this.logger.log(`onStartup() process, no problems found`);
+        this.logger.log(`[${this.onStartup.name}] process, no problems found`);
         break;
 
       case latestCrashGame?.state === CrashGameStateEnum.PENDING:
-        this.logger.warn(`onStartup() process, latestCrashGame was in a PENDING state, deleted it`);
+        this.logger.warn(
+          `[${this.onStartup.name}] process, latestCrashGame was in a PENDING state, deleted it`
+        );
 
         this.em.removeAndFlush(latestCrashGame);
         break;
 
       case latestCrashGame?.state === CrashGameStateEnum.IN_PROGRESS:
         this.logger.warn(
-          `onStartup() process, latestCrashGame was in a IN_PROGRESS state, deleted it and refunded every bets`
+          `[${this.onStartup.name}] process, latestCrashGame was in a IN_PROGRESS state, deleted it and refunded every bets`
         );
 
         for (const bet of latestCrashGame.bets) {

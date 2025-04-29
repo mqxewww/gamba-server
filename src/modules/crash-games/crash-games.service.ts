@@ -3,21 +3,19 @@ import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { WsException } from "@nestjs/websockets";
 import moment from "moment";
-import { Socket } from "socket.io";
-import { AppService } from "src/app.service";
+import { Socket, type DefaultEventsMap } from "socket.io";
 import { WsError } from "~common/constants/ws-errors.constant";
 import { EventEnum } from "~common/enums/event.enum";
-import { WsNamespaceEnum } from "~common/enums/ws-namespace.enum";
 import { CrashGameHelper } from "~common/helpers/crash-game.helper";
-import { AuthService } from "~modules/auth/auth.service";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
-import { HandleCashoutDTO } from "~modules/crash-games/dto/inbound/handle-cashout.dto";
 import { CurrentCrashGameDTO } from "~modules/crash-games/dto/outbound/current-crash-game.dto";
 import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entity";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
 import { CrashGameBetStateEnum } from "~modules/crash-games/enums/crash-game-bet-state.enum";
 import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.enum";
+import type { UserDTO } from "~modules/users/dto/outbound/user.dto";
 import { User } from "~modules/users/entities/user.entity";
+import { UsersService } from "~modules/users/users.service";
 
 @Injectable()
 export class CrashGamesService {
@@ -27,36 +25,31 @@ export class CrashGamesService {
   public constructor(
     private readonly em: EntityManager,
     private readonly eventEmitter: EventEmitter2,
-    private readonly appService: AppService,
-    private readonly authService: AuthService
+    private readonly usersService: UsersService
   ) {}
 
   public async handleConnection(client: Socket): Promise<CurrentCrashGameDTO> {
-    this.appService.registerClient(client.id, WsNamespaceEnum.CRASH_GAMES);
-
-    const { token, email } = client.handshake.query;
-
-    if (token && !Array.isArray(token) && email && !Array.isArray(email)) {
-      const user = await this.authService.validateToken(email, token);
-
-      if (user) client.data.user = user;
-    }
+    await this.usersService.validateClient(client);
 
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
-  public handleDisconnect(client: Socket): void {
-    this.appService.removeClient(client.id);
-  }
-
   public async handleAddBet(
-    client: Socket,
+    client: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, { user?: UserDTO }>,
     message: HandleAddBetDTO
   ): Promise<CurrentCrashGameDTO> {
+    if (!client.data.user) throw new WsException(WsError.NOT_LOGGED_IN);
+
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.PENDING)
       throw new WsException(WsError.GAME_DOESNT_ALLOW);
 
-    const user = await this.em.findOneOrFail(User, { uuid: message.user_uuid });
+    const user = await this.em.findOne(User, { uuid: client.data.user!.uuid });
+
+    if (!user) {
+      this.logger.error(`[handleAddBet] Cannot find user ${client.data.user.uuid}`);
+
+      throw new WsException(WsError.UNEXPECTED_ERROR);
+    }
 
     if (this.currentCrashGame.bets.find((bet) => bet.user.uuid === user.uuid))
       throw new WsException(WsError.ALREADY_BET);
@@ -78,13 +71,16 @@ export class CrashGamesService {
   }
 
   public async handleCashout(
-    client: Socket,
-    message: HandleCashoutDTO
+    client: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, { user?: UserDTO }>
   ): Promise<CurrentCrashGameDTO> {
+    if (!client.data.user) throw new WsException(WsError.NOT_LOGGED_IN);
+
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.IN_PROGRESS)
       throw new WsException(WsError.GAME_DOESNT_ALLOW);
 
-    const userBet = this.currentCrashGame.bets.find((bet) => bet.user.uuid === message.user_uuid);
+    const userBet = this.currentCrashGame.bets.find(
+      (bet) => bet.user.uuid === client.data.user!.uuid
+    );
 
     if (!userBet) throw new WsException(WsError.NO_PENDING_BET);
 
