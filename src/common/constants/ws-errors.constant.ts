@@ -30,7 +30,7 @@ export const WsError: { [key in WsErrorName]: WsResponseError } = {
   },
   [WsErrorName.INVALID_TOKEN_EMAIL]: {
     name: WsErrorName.INVALID_TOKEN_EMAIL,
-    message: "The provided email linked with the token is invalid."
+    message: "The email and token provided are not associated."
   },
 
   [WsErrorName.GAME_DOESNT_ALLOW]: {

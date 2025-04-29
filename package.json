@@ -1,9 +1,11 @@
 {
   "name": "gamba-server",
   "version": "0.1.0",
-  "description": "",
-  "module": "./src/main.ts",
+  "description": "A NestJS-based websocket server using Socket.IO. Backend side of my GambaApp Project.",
   "type": "module",
+  "engines": {
+    "bun": "=1.2.9"
+  },
   "scripts": {
     "build": "bunx --bun nest build",
     "format": "bunx --bun eslint \"**/*.ts\" && bunx --bun prettier --write \"**/*.{ts,json}\"",
@@ -21,6 +23,7 @@
     "type": "git",
     "url": "https://github.com/mqxewww/gamba-server.git"
   },
+  "keywords": [],
   "dependencies": {
     "@mikro-orm/core": "^6.4.11",
     "@mikro-orm/mysql": "^6.4.11",
@@ -31,7 +34,6 @@
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/platform-fastify": "^11.0.12",
     "@nestjs/platform-socket.io": "^11.0.12",
-    "@nestjs/swagger": "^11.1.0",
     "@nestjs/websockets": "^11.0.12",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -54,3 +56,4 @@
     "typescript": "5.5.3"
   }
 }
+

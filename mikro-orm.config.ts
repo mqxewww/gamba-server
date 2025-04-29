@@ -1,8 +1,5 @@
 import { defineConfig } from "@mikro-orm/mysql";
-import { InternalServerErrorException, Logger } from "@nestjs/common";
 import { config } from "dotenv";
-
-const logger = new Logger("MikroORMConfig");
 
 // Required when running commands from MikroORM CLI
 config({ path: "./config/.env" });
@@ -17,10 +14,5 @@ export default defineConfig({
   entitiesTs: ["./src/**/entities/*.entity.ts"],
   allowGlobalContext: true,
   timezone: "+00:00",
-  findOneOrFailHandler: (entityName, where) => {
-    logger.error({ entityName, where });
-
-    throw new InternalServerErrorException({ entityName, where });
-  },
   persistOnCreate: true
 });

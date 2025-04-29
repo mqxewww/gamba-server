@@ -17,10 +17,7 @@ export class AuthService {
     let user = await this.em.findOne(User, { email: body.email }, { populate: ["token"] });
 
     if (!user) {
-      this.logger.log(`User not found for email : ${body.email}`);
-
       const name = await UserHelper.formatUserName(body.email, async (name) => {
-        // Name is valid if it's not already taken
         return !(await this.em.findOne(User, { name }));
       });
 
@@ -29,8 +26,6 @@ export class AuthService {
         email: body.email,
         coins: 200
       });
-    } else {
-      this.logger.log(`User found : ${user.email}`);
     }
 
     const token = this.em.create(Token, {
