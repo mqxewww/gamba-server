@@ -1,12 +1,6 @@
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 
-interface WsResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: object | string;
-}
-
 export class WebSocketHelper {
   /**
    * Parses a JSON string received from a WebSocket message, validates the resulting object
@@ -30,17 +24,5 @@ export class WebSocketHelper {
     if (errors.length > 0) throw errors;
 
     return instance;
-  }
-
-  public static createWsResponse<T>(
-    success: boolean,
-    data?: T,
-    error?: object | string
-  ): WsResponse<T> {
-    return {
-      success,
-      data,
-      error
-    };
   }
 }

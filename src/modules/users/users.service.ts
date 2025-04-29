@@ -11,18 +11,23 @@ export class UsersService {
 
   public constructor(private readonly authService: AuthService) {}
 
+  public getUsersList(): { users: number; spectators: number } {
+    return {
+      users: this.usersConnected.size,
+      spectators: this.spectatorsCount
+    };
+  }
+
   public async handleConnection(client: Socket): Promise<UserDTO | null> {
     const user = await this.validateClient(client);
 
     if (user) {
       this.usersConnected.set(client.id, user);
-      this.logger.log(`[+] ${user.name} joined.`);
 
       return user;
     }
 
     this.spectatorsCount++;
-    this.logger.log(`[+] spectator joined.`);
 
     return null;
   }
@@ -32,10 +37,8 @@ export class UsersService {
 
     if (user) {
       this.usersConnected.delete(client.id);
-      this.logger.log(`[-] ${user.name} left.`);
     } else {
       this.spectatorsCount--;
-      this.logger.log(`[-] spectator left.`);
     }
   }
 

@@ -50,6 +50,6 @@ export class AppService {
         break;
     }
 
-    this.eventEmitter.emit(EventEnum.CG_CREATE);
+    this.eventEmitter.emit(EventEnum.CRASH_GAME_CREATE);
   }
 }

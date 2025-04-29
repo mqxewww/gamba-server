@@ -26,48 +26,48 @@ export class CrashGamesGateway implements OnGatewayConnection {
   public async handleConnection(client: Socket, ..._args: unknown[]): Promise<void> {
     const response = await this.crashGamesService.handleConnection(client);
 
-    client.emit(WsMessageEnum.CG_DATA, response);
+    client.emit(WsMessageEnum.GAME_DATA, response);
   }
 
-  @SubscribeMessage(WsMessageEnum.CG_ADD_BET)
+  @SubscribeMessage(WsMessageEnum.ADD_BET)
   public async handleAddBet(client: Socket, message: string): Promise<void> {
     const response = await this.crashGamesService.handleAddBet(
       client,
       await WebSocketHelper.parseAndValidateJSON(message, HandleAddBetDTO)
     );
 
-    client.emit(WsMessageEnum.CG_ADD_BET_RES, true);
+    client.emit(WsMessageEnum.ADD_BET_SUCCESS, true);
 
-    this.server.emit(WsMessageEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.GAME_BET_UPDATE, response);
   }
 
-  @SubscribeMessage(WsMessageEnum.CG_CASHOUT)
+  @SubscribeMessage(WsMessageEnum.CASHOUT)
   public async handleCashout(client: Socket): Promise<void> {
     const response = await this.crashGamesService.handleCashout(client);
 
-    client.emit(WsMessageEnum.CG_CASHOUT_RES, true);
+    client.emit(WsMessageEnum.CASHOUT_SUCCESS, true);
 
-    this.server.emit(WsMessageEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.GAME_BET_UPDATE, response);
   }
 
-  @OnEvent(EventEnum.CG_CREATE)
+  @OnEvent(EventEnum.CRASH_GAME_CREATE)
   public async handleCreatePendingGame(): Promise<void> {
     const response = await this.crashGamesService.handleCreatePendingGame();
 
-    this.server.emit(WsMessageEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.GAME_DATA, response);
   }
 
-  @OnEvent(EventEnum.CG_START)
+  @OnEvent(EventEnum.CRASH_GAME_START)
   public async handleRegisterBetsAndStart(payload: number): Promise<void> {
-    const response = await this.crashGamesService.handleRegisterBetsAndStart(payload);
+    await this.crashGamesService.handleRegisterBetsAndStart(payload);
 
-    this.server.emit(WsMessageEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.GAME_STARTED, true);
   }
 
-  @OnEvent(EventEnum.CG_END)
+  @OnEvent(EventEnum.CRASH_GAME_END)
   public async handleEndCurrentGame(): Promise<void> {
     const response = await this.crashGamesService.handleEndCurrentGame();
 
-    this.server.emit(WsMessageEnum.CG_DATA, response);
+    this.server.emit(WsMessageEnum.GAME_ENDED, response);
   }
 }

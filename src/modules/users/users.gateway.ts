@@ -19,10 +19,14 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async handleConnection(client: Socket, ..._args: unknown[]) {
     const user = await this.usersService.handleConnection(client);
 
-    if (user) client.emit(WsMessageEnum.U_DATA, user);
+    if (user) client.emit(WsMessageEnum.USER_DATA, user);
+
+    this.server.emit(WsMessageEnum.USERS_LIST, this.usersService.getUsersList());
   }
 
   public handleDisconnect(client: Socket) {
     this.usersService.handleDisconnect(client);
+
+    this.server.emit(WsMessageEnum.USERS_LIST, this.usersService.getUsersList());
   }
 }

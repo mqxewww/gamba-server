@@ -1,9 +1,9 @@
 export enum EventEnum {
   // 'crash-game' related events
 
-  CG_CREATE = "crash-game.create",
-  CG_START = "crash-game.start",
-  CG_END = "crash-game.end"
+  CRASH_GAME_CREATE = "crash-game.create",
+  CRASH_GAME_START = "crash-game.start",
+  CRASH_GAME_END = "crash-game.end"
 
   // 'users' related events
 }

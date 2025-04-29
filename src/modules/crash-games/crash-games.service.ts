@@ -8,6 +8,7 @@ import { WsError } from "~common/constants/ws-errors.constant";
 import { EventEnum } from "~common/enums/event.enum";
 import { CrashGameHelper } from "~common/helpers/crash-game.helper";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
+import { CrashGameBetMinifiedDTO } from "~modules/crash-games/dto/outbound/crash-game-bet.dto";
 import { CurrentCrashGameDTO } from "~modules/crash-games/dto/outbound/current-crash-game.dto";
 import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entity";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
@@ -37,7 +38,7 @@ export class CrashGamesService {
   public async handleAddBet(
     client: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, { user?: UserDTO }>,
     message: HandleAddBetDTO
-  ): Promise<CurrentCrashGameDTO> {
+  ): Promise<CrashGameBetMinifiedDTO> {
     if (!client.data.user) throw new WsException(WsError.NOT_LOGGED_IN);
 
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.PENDING)
@@ -56,7 +57,7 @@ export class CrashGamesService {
 
     if (message.amount > user.coins) throw new WsException(WsError.NOT_ENOUGH_COINS);
 
-    this.em.create(CrashGameBet, {
+    const bet = this.em.create(CrashGameBet, {
       user,
       amount: message.amount,
       state: CrashGameBetStateEnum.NOT_REGISTERED,
@@ -67,12 +68,12 @@ export class CrashGamesService {
 
     this.logger.log(`${user.name} has bet ${message.amount} coins`);
 
-    return CurrentCrashGameDTO.build(this.currentCrashGame);
+    return CrashGameBetMinifiedDTO.build(bet);
   }
 
   public async handleCashout(
     client: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, { user?: UserDTO }>
-  ): Promise<CurrentCrashGameDTO> {
+  ): Promise<CrashGameBetMinifiedDTO> {
     if (!client.data.user) throw new WsException(WsError.NOT_LOGGED_IN);
 
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.IN_PROGRESS)
@@ -103,7 +104,7 @@ export class CrashGamesService {
       `${userBet.user.name} cashed out at x${userBet.cashedOutAt / 100}, winning ${userBet.amount * (userBet.cashedOutAt / 100)} coins`
     );
 
-    return CurrentCrashGameDTO.build(this.currentCrashGame);
+    return CrashGameBetMinifiedDTO.build(userBet);
   }
 
   public async handleCreatePendingGame(): Promise<CurrentCrashGameDTO> {
@@ -120,7 +121,7 @@ export class CrashGamesService {
     const time = CrashGameHelper.getTimeFromCrashTick(crashTick);
 
     setTimeout(
-      () => this.eventEmitter.emit(EventEnum.CG_START, time),
+      () => this.eventEmitter.emit(EventEnum.CRASH_GAME_START, time),
       20000 - moment().milliseconds()
     );
 
@@ -129,7 +130,7 @@ export class CrashGamesService {
     return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
-  public async handleRegisterBetsAndStart(time: number): Promise<CurrentCrashGameDTO> {
+  public async handleRegisterBetsAndStart(time: number): Promise<void> {
     if (!this.currentCrashGame)
       throw new InternalServerErrorException(
         "Unable to register bets or start the game if no game has been created"
@@ -144,14 +145,12 @@ export class CrashGamesService {
 
     await this.em.flush();
 
-    setTimeout(() => this.eventEmitter.emit(EventEnum.CG_END), time);
+    setTimeout(() => this.eventEmitter.emit(EventEnum.CRASH_GAME_END), time);
 
     this.logger.log(`Bets are now registered and the current 'crash game' is now in progress`);
-
-    return CurrentCrashGameDTO.build(this.currentCrashGame);
   }
 
-  public async handleEndCurrentGame(): Promise<CurrentCrashGameDTO> {
+  public async handleEndCurrentGame(): Promise<number> {
     if (!this.currentCrashGame || this.currentCrashGame.state !== CrashGameStateEnum.IN_PROGRESS)
       throw new InternalServerErrorException(
         "Unable to end the game if no game has been created or if it is not in progress."
@@ -174,8 +173,8 @@ export class CrashGamesService {
       `The current 'crash game' is now finished, crashed at x${crashTick / 100}, lasted for ${time}ms`
     );
 
-    setTimeout(() => this.eventEmitter.emit(EventEnum.CG_CREATE), 5000);
+    setTimeout(() => this.eventEmitter.emit(EventEnum.CRASH_GAME_CREATE), 5000);
 
-    return CurrentCrashGameDTO.build(this.currentCrashGame, crashTick);
+    return crashTick;
   }
 }
