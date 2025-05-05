@@ -4,7 +4,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { WsException } from "@nestjs/websockets";
 import moment from "moment";
 import { Socket, type DefaultEventsMap } from "socket.io";
-import { WsError } from "~common/constants/ws-errors.constant";
+import { WsError } from "~common/constants/ws-error.constant";
 import { AppEvents } from "~common/enums/app-events.enum";
 import { CrashGamesHelper } from "~common/helpers/crash-games.helper";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
