@@ -1,7 +1,7 @@
 import { Collection, Entity, OneToMany, OneToOne, Property, type Rel } from "@mikro-orm/core";
 import { BaseEntity } from "~common/entities/base.entity";
 import { Token } from "~modules/auth/entities/token.entity";
-import { CrashGameBet } from "~modules/crash-games/entities/crash-game-bet.entity";
+import { Bet } from "~modules/crash-games/entities/bet.entity";
 
 @Entity({ abstract: true })
 export abstract class IsolatedUser extends BaseEntity {
@@ -20,6 +20,6 @@ export class User extends IsolatedUser {
   @OneToOne(() => Token, (token) => token.user, { nullable: true, orphanRemoval: true })
   public token?: Rel<Token>;
 
-  @OneToMany(() => CrashGameBet, (crashGameBet) => crashGameBet.user)
-  public crashGameBets = new Collection<CrashGameBet>(this);
+  @OneToMany(() => Bet, (bet) => bet.user)
+  public bets = new Collection<Bet>(this);
 }

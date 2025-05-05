@@ -1,4 +1,4 @@
-export enum EventEnum {
+export enum AppEvents {
   // 'crash-game' related events
 
   CRASH_GAME_CREATE = "crash-game.create",

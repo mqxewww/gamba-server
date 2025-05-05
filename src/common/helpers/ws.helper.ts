@@ -1,7 +1,7 @@
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 
-export class WebSocketHelper {
+export class WsHelper {
   /**
    * Parses a JSON string received from a WebSocket message, validates the resulting object
    * against the provided class type, and returns the validated instance.

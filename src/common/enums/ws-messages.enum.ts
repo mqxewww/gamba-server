@@ -1,4 +1,4 @@
-export enum WsMessageEnum {
+export enum WsMessages {
   // 'crash-game' related messages
 
   /** Used to send complete data for the current game. */

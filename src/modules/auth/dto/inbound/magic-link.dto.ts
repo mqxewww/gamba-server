@@ -1,6 +1,6 @@
 import { IsEmail } from "class-validator";
 
-export class SendLinkDTO {
+export class MagicLinkDTO {
   @IsEmail()
   public email!: string;
 }

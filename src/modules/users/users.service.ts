@@ -1,11 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Socket } from "socket.io";
 import { AuthService } from "~modules/auth/auth.service";
 import { UserDTO } from "~modules/users/dto/outbound/user.dto";
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
   private readonly usersConnected = new Map<string, UserDTO>();
   private spectatorsCount = 0;
 

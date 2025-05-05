@@ -1,10 +1,10 @@
 import { EntityManager } from "@mikro-orm/mysql";
 import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { EventEnum } from "~common/enums/event.enum";
+import { AppEvents } from "~common/enums/app-events.enum";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
-import { CrashGameBetStateEnum } from "~modules/crash-games/enums/crash-game-bet-state.enum";
-import { CrashGameStateEnum } from "~modules/crash-games/enums/crash-game-state.enum";
+import { BetStatus } from "~modules/crash-games/enums/bet-status.enum";
+import { CrashGameState } from "~modules/crash-games/enums/crash-game-state.enum";
 
 @Injectable()
 export class AppService {
@@ -25,11 +25,11 @@ export class AppService {
     );
 
     switch (true) {
-      case !latestCrashGame || latestCrashGame.state === CrashGameStateEnum.FINISHED:
+      case !latestCrashGame || latestCrashGame.state === CrashGameState.FINISHED:
         this.logger.log(`[${this.onStartup.name}] process, no problems found`);
         break;
 
-      case latestCrashGame?.state === CrashGameStateEnum.PENDING:
+      case latestCrashGame?.state === CrashGameState.PENDING:
         this.logger.warn(
           `[${this.onStartup.name}] process, latestCrashGame was in a PENDING state, deleted it`
         );
@@ -37,19 +37,19 @@ export class AppService {
         this.em.removeAndFlush(latestCrashGame);
         break;
 
-      case latestCrashGame?.state === CrashGameStateEnum.IN_PROGRESS:
+      case latestCrashGame?.state === CrashGameState.IN_PROGRESS:
         this.logger.warn(
           `[${this.onStartup.name}] process, latestCrashGame was in a IN_PROGRESS state, deleted it and refunded every bets`
         );
 
         for (const bet of latestCrashGame.bets) {
-          if (bet.state !== CrashGameBetStateEnum.NOT_REGISTERED) bet.user.coins += bet.amount;
+          if (bet.status !== BetStatus.NOT_REGISTERED) bet.user.coins += bet.amount;
         }
 
         this.em.removeAndFlush(latestCrashGame);
         break;
     }
 
-    this.eventEmitter.emit(EventEnum.CRASH_GAME_CREATE);
+    this.eventEmitter.emit(AppEvents.CRASH_GAME_CREATE);
   }
 }

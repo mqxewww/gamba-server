@@ -1,8 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 
-export class CrashGameHelper {
-  public static MIN_CLIENT = 3;
-
+export class CrashGamesHelper {
   private static K = 0.0578;
   private static houseEdgePercent = 5;
 

@@ -1,9 +1,9 @@
-export interface WsResponseError {
+interface WsResponseError {
   name: WsErrorName;
   message: string;
 }
 
-export enum WsErrorName {
+enum WsErrorName {
   TOKEN_DOESNT_EXISTS = "TOKEN_DOESNT_EXISTS",
   TOKEN_HAS_EXPIRED = "TOKEN_HAS_EXPIRED",
   INVALID_TOKEN_EMAIL = "INVALID_TOKEN_EMAIL",

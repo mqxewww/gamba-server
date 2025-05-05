@@ -1,30 +1,30 @@
-export class UserHelper {
+export class UsersHelper {
   /**
    * Generates an username from the provided email.
    *
-   * If the name is already taken, an integer is added at the end until an available name is found.
+   * If the username is already taken, an integer is added at the end until an available username is found.
    *
    * @param email The email from which to generate the username.
-   * @param verifier A function that checks if a name is available.
+   * @param verifier A function that checks if an username is available.
    *
    * @returns A unique username based on the email provided.
    */
-  public static async formatUserName(
+  public static async formatUsername(
     email: string,
-    verifier: (name: string) => Promise<boolean>
+    verifier: (username: string) => Promise<boolean>
   ): Promise<string> {
-    let name: string;
+    let username: string;
     let i = 0;
 
     do {
-      name =
+      username =
         i === 0
           ? email.split("@")[0].toLowerCase().replace(" ", "")
           : `${email.split("@")[0]}${i}`.toLowerCase().replace(" ", "");
 
       i++;
-    } while (!(await verifier(name)));
+    } while (!(await verifier(username)));
 
-    return name;
+    return username;
   }
 }

@@ -1,13 +1,13 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { AuthService } from "~modules/auth/auth.service";
-import type { SendLinkDTO } from "~modules/auth/dto/inbound/send-link.dto";
+import type { MagicLinkDTO } from "~modules/auth/dto/inbound/magic-link.dto";
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("send-link")
-  public async sendLink(@Body() body: SendLinkDTO): Promise<void> {
-    return await this.authService.sendLink(body);
+  @Post("magic-link")
+  public async magicLink(@Body() body: MagicLinkDTO): Promise<void> {
+    return await this.authService.magicLink(body);
   }
 }

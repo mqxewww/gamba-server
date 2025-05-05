@@ -1,8 +1,8 @@
 import { Entity, OptionalProps, PrimaryKey, Property } from "@mikro-orm/core";
 
 @Entity({ abstract: true })
-export abstract class BaseEntity<Optional = never> {
-  public [OptionalProps]?: Optional | "id" | "uuid" | "created_at" | "updated_at";
+export abstract class BaseEntity {
+  public [OptionalProps]?: "id" | "uuid" | "created_at" | "updated_at";
 
   @PrimaryKey({ autoincrement: true })
   public id!: number;

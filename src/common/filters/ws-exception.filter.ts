@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
 import { Socket } from "socket.io";
-import { WsMessageEnum } from "~common/enums/ws-message.enum";
+import { WsMessages } from "~common/enums/ws-messages.enum";
 
 @Catch(WsException)
 export class WsExceptionFilter implements ModuleWsExceptionFilter {
@@ -13,14 +13,14 @@ export class WsExceptionFilter implements ModuleWsExceptionFilter {
     const client = host.switchToWs().getClient() as Socket;
     const event = host.switchToWs().getPattern();
 
-    let emitEvent: WsMessageEnum = WsMessageEnum.ERROR;
+    let emitEvent = WsMessages.ERROR;
 
     switch (event) {
-      case WsMessageEnum.ADD_BET:
-        emitEvent = WsMessageEnum.ADD_BET_ERROR;
+      case WsMessages.ADD_BET:
+        emitEvent = WsMessages.ADD_BET_ERROR;
         break;
-      case WsMessageEnum.CASHOUT:
-        emitEvent = WsMessageEnum.CASHOUT_ERROR;
+      case WsMessages.CASHOUT:
+        emitEvent = WsMessages.CASHOUT_ERROR;
         break;
     }
 
