@@ -1,8 +1,4 @@
-import {
-  Catch,
-  type ArgumentsHost,
-  type WsExceptionFilter as ModuleWsExceptionFilter
-} from "@nestjs/common";
+import { ArgumentsHost, Catch, WsExceptionFilter as ModuleWsExceptionFilter } from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
 import { Socket } from "socket.io";
 import { WsMessages } from "~common/enums/ws-messages.enum";

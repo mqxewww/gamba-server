@@ -1,12 +1,12 @@
 import {
+  DynamicModule,
   Injectable,
   InternalServerErrorException,
   Logger,
   Module,
-  type DynamicModule,
-  type OnApplicationShutdown
+  OnApplicationShutdown
 } from "@nestjs/common";
-import { createTransport, type Transporter } from "nodemailer";
+import { createTransport, Transporter } from "nodemailer";
 import { AppError } from "~common/constants/app-error.constant";
 import { MailBody, MailSubject } from "~common/constants/mail-body.constant";
 

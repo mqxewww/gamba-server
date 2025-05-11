@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { AuthService } from "~modules/auth/auth.service";
-import type { MagicLinkDTO } from "~modules/auth/dto/inbound/magic-link.dto";
+import { MagicLinkDTO } from "~modules/auth/dto/inbound/magic-link.dto";
 
 @Controller("auth")
 export class AuthController {

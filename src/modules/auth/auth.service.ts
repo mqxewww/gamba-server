@@ -4,7 +4,7 @@ import { MailSubject } from "~common/constants/mail-body.constant";
 import { WsError } from "~common/constants/ws-error.constant";
 import { UsersHelper } from "~common/helpers/users.helper";
 import { NodemailerProvider } from "~common/providers/nodemailer.provider";
-import type { MagicLinkDTO } from "~modules/auth/dto/inbound/magic-link.dto";
+import { MagicLinkDTO } from "~modules/auth/dto/inbound/magic-link.dto";
 import { Token } from "~modules/auth/entities/token.entity";
 import { UserDTO } from "~modules/users/dto/outbound/user.dto";
 import { User } from "~modules/users/entities/user.entity";

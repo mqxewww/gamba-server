@@ -1,14 +1,17 @@
+import { UseFilters } from "@nestjs/common";
 import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   WebSocketGateway,
-  WebSocketServer,
-  type OnGatewayConnection,
-  type OnGatewayDisconnect
+  WebSocketServer
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsMessages } from "~common/enums/ws-messages.enum";
 import { WsNamespaces } from "~common/enums/ws-namespaces.enum";
+import { WsExceptionFilter } from "~common/filters/ws-exception.filter";
 import { UsersService } from "~modules/users/users.service";
 
+@UseFilters(WsExceptionFilter)
 @WebSocketGateway({ namespace: WsNamespaces.USERS })
 export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public constructor(private readonly usersService: UsersService) {}

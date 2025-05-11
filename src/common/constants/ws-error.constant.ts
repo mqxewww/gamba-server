@@ -1,7 +1,4 @@
-interface WsResponseError {
-  name: WsErrorName;
-  message: string;
-}
+import { AppResponseError } from "~common/constants/app-error.constant";
 
 enum WsErrorName {
   TOKEN_DOESNT_EXISTS = "TOKEN_DOESNT_EXISTS",
@@ -19,7 +16,7 @@ enum WsErrorName {
   UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
 }
 
-export const WsError: { [key in WsErrorName]: WsResponseError } = {
+export const WsError: { [key in WsErrorName]: AppResponseError<WsErrorName> } = {
   [WsErrorName.TOKEN_DOESNT_EXISTS]: {
     name: WsErrorName.TOKEN_DOESNT_EXISTS,
     message: "The provided token does not exist."

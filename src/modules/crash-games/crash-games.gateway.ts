@@ -1,10 +1,10 @@
 import { UseFilters } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import {
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
-  type OnGatewayConnection
+  WebSocketServer
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { AppEvents } from "~common/enums/app-events.enum";

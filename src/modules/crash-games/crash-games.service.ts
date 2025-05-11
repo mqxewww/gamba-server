@@ -3,7 +3,7 @@ import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { WsException } from "@nestjs/websockets";
 import moment from "moment";
-import { Socket, type DefaultEventsMap } from "socket.io";
+import { DefaultEventsMap, Socket } from "socket.io";
 import { WsError } from "~common/constants/ws-error.constant";
 import { AppEvents } from "~common/enums/app-events.enum";
 import { CrashGamesHelper } from "~common/helpers/crash-games.helper";
@@ -14,7 +14,7 @@ import { Bet } from "~modules/crash-games/entities/bet.entity";
 import { CrashGame } from "~modules/crash-games/entities/crash-game.entity";
 import { BetStatus } from "~modules/crash-games/enums/bet-status.enum";
 import { CrashGameState } from "~modules/crash-games/enums/crash-game-state.enum";
-import type { UserDTO } from "~modules/users/dto/outbound/user.dto";
+import { UserDTO } from "~modules/users/dto/outbound/user.dto";
 import { User } from "~modules/users/entities/user.entity";
 import { UsersService } from "~modules/users/users.service";
 
