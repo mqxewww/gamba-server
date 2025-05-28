@@ -5,6 +5,7 @@ import { WsException } from "@nestjs/websockets";
 import moment from "moment";
 import { DefaultEventsMap, Socket } from "socket.io";
 import { WsError } from "~common/constants/ws-error.constant";
+import { HandleClientConnectedDTO } from "~common/dto/inbound/handle-client-connected.dto";
 import { AppEvents } from "~common/enums/app-events.enum";
 import { CrashGamesHelper } from "~common/helpers/crash-games.helper";
 import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet.dto";
@@ -29,8 +30,11 @@ export class CrashGamesService {
     private readonly usersService: UsersService
   ) {}
 
-  public async handleConnection(client: Socket): Promise<CrashGameAndBetsDTO> {
-    await this.usersService.validateClient(client);
+  public async handleGameClientConnected(
+    client: Socket,
+    message: HandleClientConnectedDTO
+  ): Promise<CrashGameAndBetsDTO> {
+    await this.usersService.validateClient(client, message);
 
     return CrashGameAndBetsDTO.build(this.currentCrashGame);
   }

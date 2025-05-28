@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Socket } from "socket.io";
+import { HandleClientConnectedDTO } from "~common/dto/inbound/handle-client-connected.dto";
+import { TokenValidationData } from "~common/types/token-validation-data.type";
 import { AuthService } from "~modules/auth/auth.service";
 import { UserDTO } from "~modules/users/dto/outbound/user.dto";
 
@@ -17,18 +19,8 @@ export class UsersService {
     };
   }
 
-  public async handleConnection(client: Socket): Promise<UserDTO | null> {
-    const user = await this.validateClient(client);
-
-    if (user) {
-      this.usersConnected.set(client.id, user);
-
-      return user;
-    }
-
+  public handleConnection(): void {
     this.spectatorsCount++;
-
-    return null;
   }
 
   public handleDisconnect(client: Socket): void {
@@ -41,17 +33,30 @@ export class UsersService {
     }
   }
 
-  public async validateClient(client: Socket): Promise<UserDTO | null> {
-    const { token, email } = client.handshake.query;
+  public async handleUserClientConnected(
+    client: Socket,
+    message: HandleClientConnectedDTO
+  ): Promise<TokenValidationData | undefined> {
+    const response = await this.validateClient(client, message);
 
-    if (token && !Array.isArray(token) && email && !Array.isArray(email)) {
-      const user = await this.authService.validateToken(email, token);
-
-      if (user) client.data.user = user;
-
-      return user;
+    if (response?.userData) {
+      this.usersConnected.set(client.id, response.userData);
+      this.spectatorsCount--;
     }
 
-    return null;
+    return response;
+  }
+
+  public async validateClient(
+    client: Socket,
+    message: HandleClientConnectedDTO
+  ): Promise<TokenValidationData | undefined> {
+    if (message.token && message.email) {
+      const response = await this.authService.validateToken(message.email, message.token);
+
+      if (response.userData) client.data.user = response.userData;
+
+      return response;
+    }
   }
 }

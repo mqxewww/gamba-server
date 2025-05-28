@@ -3,7 +3,7 @@ export interface AppResponseError<T> {
   message: string;
 }
 
-enum AppErrorName {
+export enum AppErrorName {
   EMAIL_ERROR = "EMAIL_ERROR",
   UNHANDLED_DATABASE_ERROR = "UNHANDLED_DATABASE_ERROR"
 }

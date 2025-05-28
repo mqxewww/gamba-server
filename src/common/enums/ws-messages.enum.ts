@@ -1,6 +1,8 @@
 export enum WsMessages {
   // 'crash-game' related messages
 
+  /** Used by the client to indicate that he is connected.  */
+  GAME_CLIENT_CONNECTED = "client/game_client_connected",
   /** Used to send complete data for the current game. */
   GAME_DATA = "server/game_data",
   /** Used to communicate that the game has started. */
@@ -24,6 +26,8 @@ export enum WsMessages {
 
   // 'users' related messages
 
+  /** Used by the client to indicate that he is connected.  */
+  USER_CLIENT_CONNECTED = "client/user_client_connected",
   /** Used to send the complete data of the logged-in user. */
   USER_DATA = "server/user_data",
   /** Used to send the number of connected players and the number of spectators. */
@@ -31,6 +35,6 @@ export enum WsMessages {
 
   // other messages
 
-  /** Used as default message on error, shouldn't be used. */
+  /** Used as default message on error. */
   ERROR = "server/error"
 }

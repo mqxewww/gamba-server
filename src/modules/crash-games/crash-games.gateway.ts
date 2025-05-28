@@ -1,12 +1,8 @@
 import { UseFilters } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import {
-  OnGatewayConnection,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer
-} from "@nestjs/websockets";
+import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { HandleClientConnectedDTO } from "~common/dto/inbound/handle-client-connected.dto";
 import { AppEvents } from "~common/enums/app-events.enum";
 import { WsMessages } from "~common/enums/ws-messages.enum";
 import { WsNamespaces } from "~common/enums/ws-namespaces.enum";
@@ -17,28 +13,41 @@ import { HandleAddBetDTO } from "~modules/crash-games/dto/inbound/handle-add-bet
 
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({ namespace: WsNamespaces.CRASH_GAMES })
-export class CrashGamesGateway implements OnGatewayConnection {
+export class CrashGamesGateway {
   public constructor(private readonly crashGamesService: CrashGamesService) {}
 
   @WebSocketServer()
   private readonly server!: Server;
 
-  public async handleConnection(client: Socket): Promise<void> {
-    const response = await this.crashGamesService.handleConnection(client);
+  @SubscribeMessage(WsMessages.GAME_CLIENT_CONNECTED)
+  public async handleGameClientConnected(client: Socket, message: string): Promise<void> {
+    const { instance, error } = await WsHelper.parseAndValidateJSON(
+      message,
+      HandleClientConnectedDTO
+    );
 
-    client.emit(WsMessages.GAME_DATA, response);
+    if (instance) {
+      const response = await this.crashGamesService.handleGameClientConnected(client, instance);
+
+      client.emit(WsMessages.GAME_DATA, response);
+    }
+
+    if (error) client.emit(WsMessages.ERROR, error);
   }
 
   @SubscribeMessage(WsMessages.ADD_BET)
   public async handleAddBet(client: Socket, message: string): Promise<void> {
-    const response = await this.crashGamesService.handleAddBet(
-      client,
-      await WsHelper.parseAndValidateJSON(message, HandleAddBetDTO)
-    );
+    const { instance, error } = await WsHelper.parseAndValidateJSON(message, HandleAddBetDTO);
 
-    client.emit(WsMessages.ADD_BET_SUCCESS, true);
+    if (instance) {
+      const response = await this.crashGamesService.handleAddBet(client, instance);
 
-    this.server.emit(WsMessages.GAME_BET_UPDATE, response);
+      client.emit(WsMessages.ADD_BET_SUCCESS, true);
+
+      this.server.emit(WsMessages.GAME_BET_UPDATE, response);
+    }
+
+    if (error) client.emit(WsMessages.ERROR, error);
   }
 
   @SubscribeMessage(WsMessages.CASHOUT)

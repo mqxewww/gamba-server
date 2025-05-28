@@ -4,6 +4,7 @@ import { MailSubject } from "~common/constants/mail-body.constant";
 import { WsError } from "~common/constants/ws-error.constant";
 import { UsersHelper } from "~common/helpers/users.helper";
 import { NodemailerProvider } from "~common/providers/nodemailer.provider";
+import { TokenValidationData } from "~common/types/token-validation-data.type";
 import { MagicLinkDTO } from "~modules/auth/dto/inbound/magic-link.dto";
 import { Token } from "~modules/auth/entities/token.entity";
 import { UserDTO } from "~modules/users/dto/outbound/user.dto";
@@ -49,29 +50,19 @@ export class AuthService {
     await this.nodemailerProvider.sendMail(user.email, MailSubject.MAGIC_LINK, params);
   }
 
-  public async validateToken(email: string, _token: string): Promise<UserDTO | null> {
+  public async validateToken(email: string, _token: string): Promise<TokenValidationData> {
     const token = await this.em.findOne(Token, { token: _token }, { populate: ["user"] });
 
-    if (!token) {
-      this.logger.log(WsError.TOKEN_DOESNT_EXISTS);
+    if (!token) return { error: WsError.TOKEN_DOESNT_EXISTS };
 
-      return null;
-    }
-
-    if (token.user.email !== email) {
-      this.logger.log(WsError.INVALID_TOKEN_EMAIL);
-
-      return null;
-    }
+    if (token.user.email !== email) return { error: WsError.INVALID_TOKEN_EMAIL };
 
     if (token.expires_at < new Date()) {
       this.em.removeAndFlush(token);
 
-      this.logger.log(WsError.TOKEN_HAS_EXPIRED);
-
-      return null;
+      return { error: WsError.TOKEN_HAS_EXPIRED };
     }
 
-    return UserDTO.build(token.user);
+    return { userData: UserDTO.build(token.user) };
   }
 }
